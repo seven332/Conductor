@@ -1,6 +1,3 @@
-apply from: rootProject.file('dependencies.gradle')
-apply from: rootProject.file('gradle-mvn-push.gradle')
-
 apply plugin: 'com.android.library'
 
 android {
@@ -27,3 +24,5 @@ dependencies {
 
 ext.artifactId = 'conductor-support'
 
+apply from: rootProject.file('dependencies.gradle')
+apply from: rootProject.file('gradle-mvn-push.gradle')
