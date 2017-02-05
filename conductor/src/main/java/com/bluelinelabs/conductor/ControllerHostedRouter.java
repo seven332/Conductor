@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
 import android.view.ViewGroup;
 
 import com.bluelinelabs.conductor.ControllerChangeHandler.ControllerChangeListener;
+import com.bluelinelabs.conductor.internal.TransactionIndexer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,12 +52,12 @@ class ControllerHostedRouter extends Router {
         final List<Controller> controllersToDestroy = new ArrayList<>(destroyingControllers);
         for (Controller controller : controllersToDestroy) {
             if (controller.getView() != null) {
-                controller.detach(controller.getView(), true);
+                controller.detach(controller.getView(), true, false);
             }
         }
         for (RouterTransaction transaction : backstack) {
             if (transaction.controller.getView() != null) {
-                transaction.controller.detach(transaction.controller.getView(), true);
+                transaction.controller.detach(transaction.controller.getView(), true, false);
             }
         }
 
@@ -196,5 +197,10 @@ class ControllerHostedRouter extends Router {
         } else {
             return this;
         }
+    }
+
+    @Override @Nullable
+    TransactionIndexer getTransactionIndexer() {
+        return getRootRouter().getTransactionIndexer();
     }
 }

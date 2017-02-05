@@ -13,8 +13,12 @@ import com.bluelinelabs.conductor.Router;
 import com.bluelinelabs.conductor.RouterTransaction;
 
 /**
+ * @deprecated Use RouterPagerAdapter instead! This implementation was too limited and had too many
+ * gotchas associated with it.
+ *
  * An adapter for ViewPagers that will handle adding and removing Controllers
  */
+@Deprecated
 public abstract class ControllerPagerAdapter extends PagerAdapter {
 
     private static final String KEY_SAVED_PAGES = "ControllerPagerAdapter.savedStates";
@@ -53,12 +57,17 @@ public abstract class ControllerPagerAdapter extends PagerAdapter {
             }
         }
 
+        final Controller controller;
         if (!router.hasRootController()) {
-            Controller controller = getItem(position);
+            controller = getItem(position);
             router.setRoot(RouterTransaction.with(controller).tag(name));
-            visiblePageIds.put(position, controller.getInstanceId());
         } else {
             router.rebindIfNeeded();
+            controller = router.getControllerWithTag(name);
+        }
+
+        if (controller != null) {
+            visiblePageIds.put(position, controller.getInstanceId());
         }
 
         return router.getControllerWithTag(name);
@@ -119,7 +128,8 @@ public abstract class ControllerPagerAdapter extends PagerAdapter {
     }
 
     /**
-     * Returns the already instantiated Controller in the specified position, if available.
+     * Returns the already instantiated Controller in the specified position or {@code null} if
+     * this position does not yet have a controller.
      */
     @Nullable
     public Controller getController(int position) {
