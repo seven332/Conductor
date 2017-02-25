@@ -95,6 +95,20 @@ public abstract class Router {
     }
 
     /**
+     * Returns the top {@link Controller}.
+     */
+    @Nullable
+    @UiThread
+    public Controller getCurrentController() {
+        RouterTransaction transaction = backstack.peek();
+        if (transaction != null) {
+            return transaction.controller;
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * Pops the top {@link Controller} from the backstack
      *
      * @return Whether or not this Router still has controllers remaining on it after popping.
