@@ -3,6 +3,8 @@ package com.bluelinelabs.conductor.demo.controllers;
 import android.content.Intent;
 import android.graphics.PorterDuff.Mode;
 import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.ColorRes;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
@@ -26,7 +28,10 @@ import com.bluelinelabs.conductor.ControllerChangeHandler;
 import com.bluelinelabs.conductor.ControllerChangeType;
 import com.bluelinelabs.conductor.RouterTransaction;
 import com.bluelinelabs.conductor.changehandler.FadeChangeHandler;
+import com.bluelinelabs.conductor.changehandler.TransitionChangeHandlerCompat;
 import com.bluelinelabs.conductor.demo.R;
+import com.bluelinelabs.conductor.demo.changehandler.ArcFadeMoveChangeHandler;
+import com.bluelinelabs.conductor.demo.changehandler.FabToDialogTransitionChangeHandler;
 import com.bluelinelabs.conductor.demo.controllers.NavigationDemoController.DisplayUpMode;
 import com.bluelinelabs.conductor.demo.controllers.base.BaseController;
 
@@ -36,9 +41,10 @@ import butterknife.OnClick;
 
 public class HomeController extends BaseController {
 
-    public enum HomeDemoModel {
+    private enum HomeDemoModel {
         NAVIGATION("Navigation Demos", R.color.red_300),
         TRANSITIONS("Transition Demos", R.color.blue_grey_300),
+        SHARED_ELEMENT_TRANSITIONS("Shared Element Demos", R.color.purple_300),
         CHILD_CONTROLLERS("Child Controllers", R.color.orange_300),
         VIEW_PAGER("ViewPager", R.color.green_300),
         TARGET_CONTROLLER("Target Controller", R.color.pink_300),
@@ -46,8 +52,7 @@ public class HomeController extends BaseController {
         MASTER_DETAIL("Master Detail", R.color.grey_300),
         DRAG_DISMISS("Drag Dismiss", R.color.lime_300),
         RX_LIFECYCLE("Rx Lifecycle", R.color.teal_300),
-        RX_LIFECYCLE_2("Rx Lifecycle 2", R.color.brown_300),
-        OVERLAY("Overlay Controller", R.color.purple_300);
+        RX_LIFECYCLE_2("Rx Lifecycle 2", R.color.brown_300);
 
         String title;
         @ColorRes int color;
@@ -58,8 +63,10 @@ public class HomeController extends BaseController {
         }
     }
 
+    private static final String KEY_FAB_VISIBILITY = "HomeController.fabVisibility";
+
     @BindView(R.id.recycler_view) RecyclerView recyclerView;
-    @BindView(R.id.overlay_root) ViewGroup overlayRoot;
+    @BindView(R.id.fab) View fab;
 
     public HomeController() {
         setHasOptionsMenu(true);
@@ -81,6 +88,20 @@ public class HomeController extends BaseController {
     }
 
     @Override
+    protected void onSaveViewState(@NonNull View view, @NonNull Bundle outState) {
+        super.onSaveViewState(view, outState);
+        outState.putInt(KEY_FAB_VISIBILITY, fab.getVisibility());
+    }
+
+    @Override
+    protected void onRestoreViewState(@NonNull View view, @NonNull Bundle savedViewState) {
+        super.onRestoreViewState(view, savedViewState);
+
+        //noinspection WrongConstant
+        fab.setVisibility(savedViewState.getInt(KEY_FAB_VISIBILITY));
+    }
+
+    @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.home, menu);
@@ -98,30 +119,7 @@ public class HomeController extends BaseController {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.about) {
-            SpannableString details = new SpannableString("A small, yet full-featured framework that allows building View-based Android applications");
-            details.setSpan(new AbsoluteSizeSpan(16, true), 0, details.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
-
-            final String url = "https://github.com/bluelinelabs/Conductor";
-            SpannableString link = new SpannableString(url);
-            link.setSpan(new URLSpan(url) {
-                @Override
-                public void onClick(View widget) {
-                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-                }
-            }, 0, link.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
-
-            SpannableStringBuilder content = new SpannableStringBuilder();
-            content.append("Conductor");
-            content.append("\n\n");
-            content.append(details);
-            content.append("\n\n");
-            content.append(link);
-
-            getChildRouter(overlayRoot)
-                    .setPopsLastView(true)
-                    .setRoot(RouterTransaction.with(new OverlayController(content))
-                            .pushChangeHandler(new FadeChangeHandler())
-                            .popChangeHandler(new FadeChangeHandler()));
+            onFabClicked(false);
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -132,7 +130,40 @@ public class HomeController extends BaseController {
         return "Conductor Demos";
     }
 
-    void onModelRowClick(HomeDemoModel model) {
+    @OnClick(R.id.fab)
+    public void onFabClicked() {
+        onFabClicked(true);
+    }
+
+    private void onFabClicked(boolean fromFab) {
+        SpannableString details = new SpannableString("A small, yet full-featured framework that allows building View-based Android applications");
+        details.setSpan(new AbsoluteSizeSpan(16, true), 0, details.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+
+        final String url = "https://github.com/bluelinelabs/Conductor";
+        SpannableString link = new SpannableString(url);
+        link.setSpan(new URLSpan(url) {
+            @Override
+            public void onClick(View widget) {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+            }
+        }, 0, link.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+
+        SpannableStringBuilder description = new SpannableStringBuilder();
+        description.append(details);
+        description.append("\n\n");
+        description.append(link);
+
+        ControllerChangeHandler pushHandler = fromFab ? new TransitionChangeHandlerCompat(new FabToDialogTransitionChangeHandler(), new FadeChangeHandler(false)) : new FadeChangeHandler(false);
+        ControllerChangeHandler popHandler = fromFab ? new TransitionChangeHandlerCompat(new FabToDialogTransitionChangeHandler(), new FadeChangeHandler()) : new FadeChangeHandler();
+
+        getRouter()
+                .pushController(RouterTransaction.with(new DialogController("Conductor", description))
+                        .pushChangeHandler(pushHandler)
+                        .popChangeHandler(popHandler));
+
+    }
+
+    void onModelRowClick(HomeDemoModel model, int position) {
         switch (model) {
             case NAVIGATION:
                 getRouter().pushController(RouterTransaction.with(new NavigationDemoController(0, DisplayUpMode.SHOW_FOR_CHILDREN_ONLY))
@@ -160,12 +191,10 @@ public class HomeController extends BaseController {
                         .pushChangeHandler(new FadeChangeHandler())
                         .popChangeHandler(new FadeChangeHandler()));
                 break;
-            case OVERLAY:
-                getChildRouter(overlayRoot)
-                        .setPopsLastView(true)
-                        .setRoot(RouterTransaction.with(new OverlayController("I'm an overlay!"))
-                                .pushChangeHandler(new FadeChangeHandler())
-                                .popChangeHandler(new FadeChangeHandler()));
+            case SHARED_ELEMENT_TRANSITIONS:
+                getRouter().pushController(RouterTransaction.with(new CityGridController(model.title, model.color, position))
+                        .pushChangeHandler(new TransitionChangeHandlerCompat(new ArcFadeMoveChangeHandler(), new FadeChangeHandler()))
+                        .popChangeHandler(new TransitionChangeHandlerCompat(new ArcFadeMoveChangeHandler(), new FadeChangeHandler())));
                 break;
             case DRAG_DISMISS:
                 getRouter().pushController(RouterTransaction.with(new DragDismissController())
@@ -212,7 +241,7 @@ public class HomeController extends BaseController {
 
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
-            holder.bind(items[position]);
+            holder.bind(position, items[position]);
         }
 
         @Override
@@ -225,21 +254,28 @@ public class HomeController extends BaseController {
             @BindView(R.id.tv_title) TextView tvTitle;
             @BindView(R.id.img_dot) ImageView imgDot;
             private HomeDemoModel model;
+            private int position;
 
             public ViewHolder(View itemView) {
                 super(itemView);
                 ButterKnife.bind(this, itemView);
             }
 
-            void bind(HomeDemoModel item) {
+            void bind(int position, HomeDemoModel item) {
                 model = item;
                 tvTitle.setText(item.title);
                 imgDot.getDrawable().setColorFilter(ContextCompat.getColor(getActivity(), item.color), Mode.SRC_ATOP);
+                this.position = position;
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    tvTitle.setTransitionName(getResources().getString(R.string.transition_tag_title_indexed, position));
+                    imgDot.setTransitionName(getResources().getString(R.string.transition_tag_dot_indexed, position));
+                }
             }
 
             @OnClick(R.id.row_root)
             void onRowClick() {
-                onModelRowClick(model);
+                onModelRowClick(model, position);
             }
 
         }
