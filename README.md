@@ -4,8 +4,8 @@
 
 A small, yet full-featured framework that allows building View-based Android applications. Conductor provides a light-weight wrapper around standard Android Views that does just about everything you'd want:
 
-              |  Conductor
-------|------------------------------
+|           |  Conductor  |
+|-----------|-------------|
 :tada: | Easy integration
 :point_up: | Single Activity apps without using Fragments
 :recycle: | Simple but powerful lifecycle management
@@ -24,22 +24,22 @@ compile 'com.bluelinelabs:conductor:2.1.1'
 
 // If you want the components that go along with
 // Android's support libraries (currently just a PagerAdapter):
-compile 'com.bluelinelabs:conductor-support:2.1.1'
+compile 'com.bluelinelabs:conductor-support:2.1.2'
 
 // If you want RxJava lifecycle support:
-compile 'com.bluelinelabs:conductor-rxlifecycle:2.1.1'
+compile 'com.bluelinelabs:conductor-rxlifecycle:2.1.2'
 
 // If you want RxJava2 lifecycle support:
-compile 'com.bluelinelabs:conductor-rxlifecycle2:2.1.1'
+compile 'com.bluelinelabs:conductor-rxlifecycle2:2.1.2'
 ```
 
 SNAPSHOT:
 
 ```gradle
-compile 'com.bluelinelabs:conductor:2.1.2-SNAPSHOT'
-compile 'com.bluelinelabs:conductor-support:2.1.2-SNAPSHOT'
-compile 'com.bluelinelabs:conductor-rxlifecycle:2.1.2-SNAPSHOT'
-compile 'com.bluelinelabs:conductor-rxlifecycle2:2.1.2-SNAPSHOT'
+compile 'com.bluelinelabs:conductor:2.1.3-SNAPSHOT'
+compile 'com.bluelinelabs:conductor-support:2.1.3-SNAPSHOT'
+compile 'com.bluelinelabs:conductor-rxlifecycle:2.1.3-SNAPSHOT'
+compile 'com.bluelinelabs:conductor-rxlifecycle2:2.1.3-SNAPSHOT'
 ```
 
 You also have to add the url to the snapshot repository:
@@ -55,7 +55,7 @@ allprojects {
 
 ## Components to Know
 
-              |  Conductor Components
+|             |  Conductor Components |
 ------|------------------------------
 __Controller__ | The Controller is the View wrapper that will give you all of your lifecycle management features. Think of it as a lighter-weight and more predictable Fragment alternative with an easier to manage lifecycle.
 __Router__ | A Router implements navigation and backstack handling for Controllers. Router objects are attached to Activity/containing ViewGroup pairs. Routers do not directly render or push Views to the container ViewGroup, but instead defer this responsibility to the ControllerChangeHandler specified in a given transaction.
@@ -118,7 +118,7 @@ public class HomeController extends Controller {
 
 The lifecycle of a Controller is significantly simpler to understand than that of a Fragment. A lifecycle diagram is shown below:
 
-![Controller Lifecycle](docs/Controller Lifecycle.jpg)
+![Controller Lifecycle](docs/Controller%20Lifecycle.jpg)
 
 ## Advanced Topics
 

@@ -55,7 +55,7 @@ public abstract class Controller {
     private static final String KEY_OVERRIDDEN_PUSH_HANDLER = "Controller.overriddenPushHandler";
     private static final String KEY_OVERRIDDEN_POP_HANDLER = "Controller.overriddenPopHandler";
     private static final String KEY_VIEW_STATE_HIERARCHY = "Controller.viewState.hierarchy";
-    private static final String KEY_VIEW_STATE_BUNDLE = "Controller.viewState.bundle";
+    static final String KEY_VIEW_STATE_BUNDLE = "Controller.viewState.bundle";
     private static final String KEY_RETAIN_VIEW_MODE = "Controller.retainViewMode";
 
     private final Bundle args;
@@ -87,18 +87,24 @@ public abstract class Controller {
     private final ArrayList<String> requestedPermissions = new ArrayList<>();
     private final ArrayList<RouterRequiringFunc> onRouterSetListeners = new ArrayList<>();
     private WeakReference<View> destroyedView;
+    private boolean isPerformingExitTransition;
 
     @NonNull
     static Controller newInstance(@NonNull Bundle bundle) {
         final String className = bundle.getString(KEY_CLASS_NAME);
         //noinspection ConstantConditions
-        Constructor[] constructors = ClassUtils.classForName(className, false).getConstructors();
+        Class cls = ClassUtils.classForName(className, false);
+        Constructor[] constructors = cls.getConstructors();
         Constructor bundleConstructor = getBundleConstructor(constructors);
 
         Controller controller;
         try {
             if (bundleConstructor != null) {
-                controller = (Controller)bundleConstructor.newInstance(bundle.getBundle(KEY_ARGS));
+                Bundle args = bundle.getBundle(KEY_ARGS);
+                if (args != null) {
+                    args.setClassLoader(cls.getClassLoader());
+                }
+                controller = (Controller)bundleConstructor.newInstance(args);
             } else {
                 //noinspection ConstantConditions
                 controller = (Controller)getDefaultConstructor(constructors).newInstance();
@@ -124,7 +130,7 @@ public abstract class Controller {
      * @param args Any arguments that need to be retained.
      */
     protected Controller(@Nullable Bundle args) {
-        this.args = args != null ? args : new Bundle();
+        this.args = args != null ? args : new Bundle(getClass().getClassLoader());
         instanceId = UUID.randomUUID().toString();
         ensureRequiredConstructor();
     }
@@ -211,6 +217,10 @@ public abstract class Controller {
                 childRouter = new ControllerHostedRouter(container.getId(), tag);
                 childRouter.setHost(this, container);
                 childRouters.add(childRouter);
+
+                if (isPerformingExitTransition) {
+                    childRouter.setDetachFrozen(true);
+                }
             }
         } else if (!childRouter.hasHost()) {
             childRouter.setHost(this, container);
@@ -1026,7 +1036,7 @@ public abstract class Controller {
         view.saveHierarchyState(hierarchyState);
         viewState.putSparseParcelableArray(KEY_VIEW_STATE_HIERARCHY, hierarchyState);
 
-        Bundle stateBundle = new Bundle();
+        Bundle stateBundle = new Bundle(getClass().getClassLoader());
         onSaveViewState(view, stateBundle);
         viewState.putBundle(KEY_VIEW_STATE_BUNDLE, stateBundle);
 
@@ -1039,7 +1049,9 @@ public abstract class Controller {
     private void restoreViewState(@NonNull View view) {
         if (viewState != null) {
             view.restoreHierarchyState(viewState.getSparseParcelableArray(KEY_VIEW_STATE_HIERARCHY));
-            onRestoreViewState(view, viewState.getBundle(KEY_VIEW_STATE_BUNDLE));
+            Bundle savedViewState = viewState.getBundle(KEY_VIEW_STATE_BUNDLE);
+            savedViewState.setClassLoader(getClass().getClassLoader());
+            onRestoreViewState(view, savedViewState);
 
             restoreChildControllerHosts();
 
@@ -1080,7 +1092,7 @@ public abstract class Controller {
         }
         outState.putParcelableArrayList(KEY_CHILD_ROUTERS, childBundles);
 
-        Bundle savedState = new Bundle();
+        Bundle savedState = new Bundle(getClass().getClassLoader());
         onSaveInstanceState(savedState);
 
         List<LifecycleListener> listeners = new ArrayList<>(lifecycleListeners);
@@ -1115,6 +1127,9 @@ public abstract class Controller {
         }
 
         this.savedInstanceState = savedInstanceState.getBundle(KEY_SAVED_STATE);
+        if (this.savedInstanceState != null) {
+            this.savedInstanceState.setClassLoader(getClass().getClassLoader());
+        }
         performOnRestoreInstanceState();
     }
 
@@ -1133,6 +1148,7 @@ public abstract class Controller {
 
     final void changeStarted(@NonNull ControllerChangeHandler changeHandler, @NonNull ControllerChangeType changeType) {
         if (!changeType.isEnter) {
+            isPerformingExitTransition = true;
             for (ControllerHostedRouter router : childRouters) {
                 router.setDetachFrozen(true);
             }
@@ -1148,6 +1164,7 @@ public abstract class Controller {
 
     final void changeEnded(@NonNull ControllerChangeHandler changeHandler, @NonNull ControllerChangeType changeType) {
         if (!changeType.isEnter) {
+            isPerformingExitTransition = false;
             for (ControllerHostedRouter router : childRouters) {
                 router.setDetachFrozen(false);
             }
