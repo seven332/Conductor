@@ -256,6 +256,14 @@ public abstract class Router {
     }
 
     /**
+     * Returns {@code true} for handling back presses by performing a change handler on the last controller and view
+     * in the stack. {@code false} in default.
+     */
+    public boolean getPopsLastView() {
+        return popsLastView;
+    }
+
+    /**
      * Pops all {@link Controller}s until only the root is left
      *
      * @return Whether or not any {@link Controller}s were popped in order to get to the root transaction
