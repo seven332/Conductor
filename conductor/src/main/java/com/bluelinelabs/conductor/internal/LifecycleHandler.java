@@ -1,6 +1,5 @@
 package com.bluelinelabs.conductor.internal;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Application.ActivityLifecycleCallbacks;
 import android.app.Fragment;
@@ -13,6 +12,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -181,6 +181,9 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
 
             for (int i = pendingPermissionRequests.size() - 1; i >= 0; i--) {
                 PendingPermissionRequest request = pendingPermissionRequests.remove(i);
+                // Ignore the new api error. pendingPermissionRequests is only not empty
+                // if api level >= M.
+                // noinspection NewApi
                 requestPermissions(request.instanceId, request.permissions, request.requestCode);
             }
         }
@@ -279,12 +282,13 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
         startActivityForResult(intent, requestCode);
     }
 
+    @RequiresApi(Build.VERSION_CODES.JELLY_BEAN)
     public void startActivityForResult(@NonNull String instanceId, @NonNull Intent intent, int requestCode, @Nullable Bundle options) {
         registerForActivityResult(instanceId, requestCode);
         startActivityForResult(intent, requestCode, options);
     }
 
-    @TargetApi(Build.VERSION_CODES.N)
+    @RequiresApi(Build.VERSION_CODES.N)
     public void startIntentSenderForResult(@NonNull String instanceId, @NonNull IntentSender intent, int requestCode,
                                            @Nullable Intent fillInIntent, int flagsMask, int flagsValues, int extraFlags,
                                            @Nullable Bundle options) throws IntentSender.SendIntentException {
@@ -292,7 +296,7 @@ public class LifecycleHandler extends Fragment implements ActivityLifecycleCallb
         startIntentSenderForResult(intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags, options);
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
+    @RequiresApi(Build.VERSION_CODES.M)
     public void requestPermissions(@NonNull String instanceId, @NonNull String[] permissions, int requestCode) {
         if (attached) {
             permissionRequestMap.put(requestCode, instanceId);

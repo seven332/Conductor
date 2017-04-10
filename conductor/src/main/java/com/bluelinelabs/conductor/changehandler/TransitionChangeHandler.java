@@ -1,9 +1,9 @@
 package com.bluelinelabs.conductor.changehandler;
 
-import android.annotation.TargetApi;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.transition.Transition;
 import android.transition.Transition.TransitionListener;
 import android.transition.TransitionManager;
@@ -16,7 +16,7 @@ import com.bluelinelabs.conductor.ControllerChangeHandler;
 /**
  * A base {@link ControllerChangeHandler} that facilitates using {@link android.transition.Transition}s to replace Controller Views.
  */
-@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 public abstract class TransitionChangeHandler extends ControllerChangeHandler {
 
     public interface OnTransitionPreparedListener {

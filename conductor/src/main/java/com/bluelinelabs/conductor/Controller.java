@@ -1,6 +1,5 @@
 package com.bluelinelabs.conductor;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -12,6 +11,7 @@ import android.os.Parcelable;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.text.TextUtils;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
@@ -499,6 +499,7 @@ public abstract class Controller {
     /**
      * Calls startActivityForResult(Intent, int, Bundle) from this Controller's host Activity.
      */
+    @RequiresApi(Build.VERSION_CODES.JELLY_BEAN)
     public final void startActivityForResult(@NonNull final Intent intent, final int requestCode, @Nullable final Bundle options) {
         executeWithRouter(new RouterRequiringFunc() {
             @Override public void execute() { router.startActivityForResult(instanceId, intent, requestCode, options); }
@@ -508,6 +509,7 @@ public abstract class Controller {
     /**
      * Calls startIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle) from this Controller's host Activity.
      */
+    @RequiresApi(Build.VERSION_CODES.N)
     public final void startIntentSenderForResult(@NonNull final IntentSender intent, final int requestCode, @Nullable final Intent fillInIntent, final int flagsMask,
                                                  final int flagsValues, final int extraFlags, @Nullable final Bundle options) throws IntentSender.SendIntentException {
         router.startIntentSenderForResult(instanceId, intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags, options);
@@ -540,7 +542,7 @@ public abstract class Controller {
      * including {@link #shouldShowRequestPermissionRationale(String)} and
      * {@link #onRequestPermissionsResult(int, String[], int[])} will be forwarded back to this Controller by the system.
      */
-    @TargetApi(Build.VERSION_CODES.M)
+    @RequiresApi(Build.VERSION_CODES.M)
     public final void requestPermissions(@NonNull final String[] permissions, final int requestCode) {
         requestedPermissions.addAll(Arrays.asList(permissions));
 

@@ -4,10 +4,12 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.IntentSender.SendIntentException;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.view.ViewGroup;
 
 import com.bluelinelabs.conductor.ControllerChangeHandler.ControllerChangeListener;
@@ -140,6 +142,7 @@ class ControllerHostedRouter extends Router {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.JELLY_BEAN)
     @Override
     void startActivityForResult(@NonNull String instanceId, @NonNull Intent intent, int requestCode, @Nullable Bundle options) {
         if (hostController != null && hostController.getRouter() != null) {
@@ -147,6 +150,7 @@ class ControllerHostedRouter extends Router {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     @Override
     void startIntentSenderForResult(@NonNull String instanceId, @NonNull IntentSender intent, int requestCode, @Nullable Intent fillInIntent, int flagsMask, int flagsValues, int extraFlags, @Nullable Bundle options) throws SendIntentException {
         if (hostController != null && hostController.getRouter() != null) {
@@ -168,6 +172,7 @@ class ControllerHostedRouter extends Router {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     @Override
     void requestPermissions(@NonNull String instanceId, @NonNull String[] permissions, int requestCode) {
         if (hostController != null && hostController.getRouter() != null) {

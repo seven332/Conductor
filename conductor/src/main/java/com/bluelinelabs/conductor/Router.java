@@ -3,9 +3,11 @@ package com.bluelinelabs.conductor;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.annotation.UiThread;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -840,11 +842,14 @@ public abstract class Router {
     abstract void invalidateOptionsMenu();
     abstract void startActivity(@NonNull Intent intent);
     abstract void startActivityForResult(@NonNull String instanceId, @NonNull Intent intent, int requestCode);
+    @RequiresApi(Build.VERSION_CODES.JELLY_BEAN)
     abstract void startActivityForResult(@NonNull String instanceId, @NonNull Intent intent, int requestCode, @Nullable Bundle options);
+    @RequiresApi(Build.VERSION_CODES.N)
     abstract void startIntentSenderForResult(@NonNull String instanceId, @NonNull IntentSender intent, int requestCode, @Nullable Intent fillInIntent, int flagsMask,
                                              int flagsValues, int extraFlags, @Nullable Bundle options) throws IntentSender.SendIntentException;
     abstract void registerForActivityResult(@NonNull String instanceId, int requestCode);
     abstract void unregisterForActivityResults(@NonNull String instanceId);
+    @RequiresApi(Build.VERSION_CODES.M)
     abstract void requestPermissions(@NonNull String instanceId, @NonNull String[] permissions, int requestCode);
     abstract boolean hasHost();
     @NonNull abstract List<Router> getSiblingRouters();

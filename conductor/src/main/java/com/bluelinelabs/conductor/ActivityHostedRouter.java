@@ -4,9 +4,11 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.IntentSender.SendIntentException;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.view.ViewGroup;
 
 import com.bluelinelabs.conductor.ControllerChangeHandler.ControllerChangeListener;
@@ -82,11 +84,13 @@ public class ActivityHostedRouter extends Router {
         lifecycleHandler.startActivityForResult(instanceId, intent, requestCode);
     }
 
+    @RequiresApi(Build.VERSION_CODES.JELLY_BEAN)
     @Override
     void startActivityForResult(@NonNull String instanceId, @NonNull Intent intent, int requestCode, @Nullable Bundle options) {
         lifecycleHandler.startActivityForResult(instanceId, intent, requestCode, options);
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     @Override
     void startIntentSenderForResult(@NonNull String instanceId, @NonNull IntentSender intent, int requestCode, @Nullable Intent fillInIntent,
                                     int flagsMask, int flagsValues, int extraFlags, @Nullable Bundle options) throws SendIntentException {
@@ -103,6 +107,7 @@ public class ActivityHostedRouter extends Router {
         lifecycleHandler.unregisterForActivityResults(instanceId);
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     @Override
     void requestPermissions(@NonNull String instanceId, @NonNull String[] permissions, int requestCode) {
         lifecycleHandler.requestPermissions(instanceId, permissions, requestCode);
