@@ -247,6 +247,14 @@ public abstract class Router {
     }
 
     /**
+     * Returns the ViewGroup in which the {@link Router}'s {@link Controller} views will be hosted.
+     */
+    @Nullable
+    public ViewGroup getContainer() {
+        return container;
+    }
+
+    /**
      * If set to true, this router will handle back presses by performing a change handler on the last controller and view
      * in the stack. This defaults to false so that the developer can either finish its containing Activity or otherwise
      * hide its parent view without any strange artifacting.
