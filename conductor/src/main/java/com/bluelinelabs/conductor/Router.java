@@ -95,7 +95,7 @@ public abstract class Router {
             //noinspection ConstantConditions
             if (backstack.peek().controller.handleBack()) {
                 return true;
-            } else if (popCurrentController()) {
+            } else if (popCurrentController() || popsLastView) {
                 return true;
             }
         }
@@ -156,22 +156,17 @@ public abstract class Router {
             transaction = backstack.remove(controller);
         }
 
-        if (transaction == null) {
-            Log.w(LOG_TAG, "The controller isn't in this backstack");
-            return !backstack.isEmpty();
-        }
+        if (transaction != null) {
+            trackDestroyingController(transaction);
 
-        trackDestroyingController(transaction);
-
-        if (poppingTopController) {
-            performControllerChange(backstack.peek(), topTransaction, false);
-        }
-
-        if (popsLastView) {
-            return topTransaction != null;
+            if (poppingTopController) {
+                performControllerChange(backstack.peek(), transaction, false);
+            }
         } else {
-            return !backstack.isEmpty();
+            Log.w(LOG_TAG, "The controller isn't in this backstack");
         }
+
+        return !backstack.isEmpty();
     }
 
     /**
