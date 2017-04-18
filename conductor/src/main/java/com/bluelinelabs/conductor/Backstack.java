@@ -67,6 +67,19 @@ class Backstack implements Iterable<RouterTransaction> {
         return backstack.peek();
     }
 
+    @Nullable
+    RouterTransaction remove(Controller controller) {
+        for (RouterTransaction transaction : backstack) {
+            if (transaction.controller == controller) {
+                backstack.remove(transaction);
+                controller.destroy();
+                return transaction;
+            }
+        }
+        // Can't find the controller in backstack
+        return null;
+    }
+
     void remove(@NonNull RouterTransaction transaction) {
         backstack.removeFirstOccurrence(transaction);
     }

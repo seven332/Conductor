@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.annotation.UiThread;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -33,6 +34,8 @@ import java.util.List;
  * but instead defer this responsibility to the {@link ControllerChangeHandler} specified in a given transaction.
  */
 public abstract class Router {
+
+    private static final String LOG_TAG = Router.class.getSimpleName();
 
     private static final String KEY_BACKSTACK = "Router.backstack";
     private static final String KEY_POPS_LAST_VIEW = "Router.popsLastView";
@@ -143,26 +146,29 @@ public abstract class Router {
     public boolean popController(@NonNull Controller controller) {
         ThreadUtils.ensureMainThread();
 
-        RouterTransaction topController = backstack.peek();
-        boolean poppingTopController = topController != null && topController.controller == controller;
+        RouterTransaction topTransaction = backstack.peek();
+        boolean poppingTopController = topTransaction != null && topTransaction.controller == controller;
 
+        RouterTransaction transaction;
         if (poppingTopController) {
-            trackDestroyingController(backstack.pop());
+            transaction = backstack.pop();
         } else {
-            for (RouterTransaction transaction : backstack) {
-                if (transaction.controller == controller) {
-                    backstack.remove(transaction);
-                    break;
-                }
-            }
+            transaction = backstack.remove(controller);
         }
 
+        if (transaction == null) {
+            Log.w(LOG_TAG, "The controller isn't in this backstack");
+            return !backstack.isEmpty();
+        }
+
+        trackDestroyingController(transaction);
+
         if (poppingTopController) {
-            performControllerChange(backstack.peek(), topController, false);
+            performControllerChange(backstack.peek(), topTransaction, false);
         }
 
         if (popsLastView) {
-            return topController != null;
+            return topTransaction != null;
         } else {
             return !backstack.isEmpty();
         }
